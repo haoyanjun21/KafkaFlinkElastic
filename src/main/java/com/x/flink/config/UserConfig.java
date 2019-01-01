@@ -9,17 +9,18 @@ import java.util.List;
 import static com.x.flink.util.Constant.*;
 
 public class UserConfig {
-    //用户配置的 应用名
-    public static final String APP_NAME = "xxx";
     //用户配置的 kafka、es
-    public static final String KAFKA_BROKERS = "localhost:9092";
-    public static final String KAFKA_TOPIC = "topic_xxx";
+    public static final String KAFKA_SERVERS = "localhost:9092";
+    //用户配置的 应用名
+    private static final String APP_NAME = "xxx";
+    public static final String KAFKA_TOPIC = "topic_" + APP_NAME;
     public static final String ES_HOSTNAME = "localhost";
     public static final int ES_PORT = 9200;
+    public static final String ES_INDEX = APP_NAME + "_es_sink_statistics";
     //用户配置的 上报字段
     public static final String USER_FIELDS = "second,forceBot,type,ip,functionId,client,version,uuid,pin,partner,osVersion,network,responseTime";
     //用户配置的 计算分组
-    public static String[] groupConfigs = {"second,forceBot,type,network", "second,forceBot,type,functionId,client,version"};
+    public static String[] groupConfigs = {"second,forceBot,ip,uuid,pin", "second,forceBot,type,functionId,client,version,partner,osVersion,network"};
     //在USER_FIELDS对应的索引位置
     public static List<int[]> groupIndices = new ArrayList<>();
     public static List<String> esIndexNames = new ArrayList<>();
@@ -29,12 +30,7 @@ public class UserConfig {
         List<String> filedList = Arrays.asList(FIELDS);
         for (int i = 0, length = groupConfigs.length; i < length; i++) {
             groupConfigs[i] = groupConfigs[i].toLowerCase();
-            String[] groupFields = groupConfigs[i].split(SEPARATOR);
-            int[] indices = new int[groupFields.length];
-            for (int j = 0; j < groupFields.length; j++) {
-                indices[j] = filedList.indexOf(groupFields[j]);
-            }
-            groupIndices.add(indices);
+            groupIndices.add(Arrays.stream(groupConfigs[i].split(SEPARATOR)).mapToInt(filedList::indexOf).toArray());
             esIndexNames.add(APP_NAME + CONNECTOR + groupConfigs[i].replaceAll(SEPARATOR, CONNECTOR));
         }
     }
